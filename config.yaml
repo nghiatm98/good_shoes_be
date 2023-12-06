@@ -1,0 +1,20 @@
+server:
+  address: ":8090"
+
+log:
+  level: "debug"
+  enable_trace: true
+  json_format: false
+
+tracer:
+  endpoint: http://localhost:14269/api/traces
+  environment: dev
+
+database:
+  driver: "sqlite"
+  source: "../database.source"
+
+product:
+  base_url: "http://localhost/api"
+  api_prefix: "/api"
+  timeout: 60000
