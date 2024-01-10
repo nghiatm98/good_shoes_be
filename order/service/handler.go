@@ -3,16 +3,21 @@ package service
 import (
     "context"
     "fmt"
+    "net/http"
+    "time"
+
     "github.com/gin-gonic/gin"
     "go.opentelemetry.io/otel/trace"
-    "good_shoes/common/model/model_order"
-    "good_shoes/common/util"
-    "good_shoes/logger"
-    "good_shoes/order/repository"
     "gorm.io/gorm"
-    "net/http"
 
     "good_shoes/common/config"
+    "good_shoes/common/model/model_inventory"
+    "good_shoes/common/model/model_order"
+    "good_shoes/common/util"
+    inventoryRepo "good_shoes/inventory/repository"
+    "good_shoes/logger"
+    "good_shoes/order/repository"
+    orderUtil "good_shoes/order/util"
 )
 
 type Handler struct {
@@ -87,6 +92,7 @@ func (h *Handler) UpdateSalesOrderStatus(c *gin.Context) {
     if err := validateUpdateOrderStatus(req); nil != err {
         logger.Error(err)
         c.JSON(http.StatusBadRequest, err.Error())
+        return
     }
 
     repo := repository.NewRepository(h.database)
@@ -94,6 +100,10 @@ func (h *Handler) UpdateSalesOrderStatus(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusInternalServerError, err.Error())
         return
+    }
+
+    if req.Status == orderUtil.SalesOrderStatusCompleted {
+        go h.updateInventoryAfterOrderComplete(req.Id)
     }
 
     c.JSON(http.StatusOK, &model_order.UpdateOrderStatusResponse{
@@ -124,7 +134,9 @@ func (h *Handler) ListSalesOrder(c *gin.Context) {
         return
     }
 
-    data := prepareDataToResponseListSalesOrder(result)
+    totalOrder := repo.Count()
+
+    data := prepareDataToResponseListSalesOrder(result, totalOrder)
     c.JSON(http.StatusOK, data)
 }
 
@@ -165,4 +177,24 @@ func (h *Handler) GetSalesOrder(c *gin.Context) {
     response := prepareDataToResponseGetSalesOrder(order, orderItems)
 
     c.JSON(http.StatusOK, response)
+}
+
+func (h *Handler) updateInventoryAfterOrderComplete(orderId string) {
+    // lấy thông tin order item
+    repo := repository.NewRepository(h.database)
+    orderItems, err := repo.ListOrderItems(orderId)
+    if nil != err {
+        logger.Error(err)
+    }
+
+    // Trừ inventory
+    for _, item := range orderItems {
+        inventoryRepo := inventoryRepo.NewRepository(h.database)
+        inventoryRepo.SubQty(&model_inventory.SubInventoryRequest{
+            ProductId: item.ProductID,
+            ParentId:  item.ParentProductID,
+            Quantity:  int(item.QtyOrdered),
+        })
+        time.Sleep(100)
+    }
 }
