@@ -28,12 +28,8 @@ func Version20231116000000(tx *gorm.DB) error {
         Sku        string  `gorm:"TYPE:VARCHAR(255);"`
         Qty        float32 `gorm:"TYPE:DECIMAL(12, 4);"`
         Position   uint32  `gorm:"TYPE:INT;"`
-        IsChecked  bool    `gorm:"TYPE:TINYINT(1);NOT NULL;default:0;"`
-        IsSelected bool    `gorm:"TYPE:TINYINT(1);NOT NULL;default:0;"`
-        IsDefault  bool    `gorm:"TYPE:TINYINT(1);NOT NULL;default:0;"`
-        IsDisabled bool    `gorm:"TYPE:TINYINT(1);NOT NULL;default:0;"`
-        QtyMutable bool    `gorm:"TYPE:TINYINT(1);NOT NULL;default:0;"`
         ProductSku string  `gorm:"TYPE:TEXT;"`
+        ImageUrl   string  `gorm:"TYPE:LONGTEXT;"`
         CreatedAt  *time.Time
         UpdatedAt  *time.Time
         DeletedAt  *gorm.DeletedAt `gorm:"index"`
@@ -58,7 +54,8 @@ func Version20231116000000(tx *gorm.DB) error {
 
     type Product struct {
         Id               string  `gorm:"TYPE:VARCHAR(100);NOT NULL;PRIMARY_KEY"`
-        IsVariant        bool    `gorm:"index:platform_external_idx,priority:2;TYPE:TINYINT(1);NOT NULL;default:0;"`
+        ParentId         string  `gorm:"TYPE:VARCHAR(100);"`
+        IsVariant        bool    `gorm:"TYPE:TINYINT(1);NOT NULL;default:0;"`
         Sku              string  `gorm:"TYPE:VARCHAR(255);"`
         Name             string  `gorm:"TYPE:VARCHAR(255);"`
         Description      string  `gorm:"TYPE:LONGTEXT;"`

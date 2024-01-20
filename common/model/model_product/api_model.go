@@ -10,9 +10,11 @@ type ListProductRequest struct {
     ParentId    string  `form:"parent_id"`
     Page        int     `form:"page"`
     Limit       int     `form:"limit"`
+    Search      string  `form:"search"`
 }
 
 type ListProductResponse struct {
+    Total int64         `json:"total"`
     Items []ProductItem `json:"items"`
 }
 
@@ -52,7 +54,7 @@ type ProductItem struct {
     Price           float64  `json:"price"`
     Cost            float64  `json:"cost"`
     SalePrice       float64  `json:"sale_price"`
-    TotalQty        uint32   `json:"total_quantity"`
+    TotalQty        int64    `json:"total_quantity"`
     CheckInventory  bool     `json:"check_inventory"`
     MultipleVariant bool     `json:"multiple_variant"`
     Category        string   `json:"category"`
@@ -81,7 +83,7 @@ type UpdateProductRequest struct {
     Price           float64 `json:"price"`
     Cost            float64 `json:"cost"`
     SalePrice       float64 `json:"sale_price"`
-    TotalQty        uint32  `json:"total_quantity"`
+    TotalQty        int64   `json:"total_quantity"`
     CheckInventory  bool    `json:"check_inventory"`
     MultipleVariant bool    `json:"multiple_variant"`
     Category        string  `json:"category"`
